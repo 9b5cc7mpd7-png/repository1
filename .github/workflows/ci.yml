@@ -31,26 +31,20 @@ jobs:
           npm -v
 
       - name: Install dependencies
-        run: npm ci
+        shell: bash
+        run: |
+          npm ci
+
+          # Workaround for npm optional dependency issue on Linux runners.
+          if ! node -e "require.resolve('@rollup/rollup-linux-x64-gnu')" >/dev/null 2>&1; then
+            npm install --no-save @rollup/rollup-linux-x64-gnu
+          fi
 
       - name: Typecheck
         run: npm run typecheck
 
       - name: Test
-        shell: bash
-        run: |
-          set +e
-          npm run test > /tmp/vitest.log 2>&1
-          status=$?
-
-          cat /tmp/vitest.log
-
-          if [ "$status" -ne 0 ]; then
-            tail -n 120 /tmp/vitest.log > /tmp/vitest-tail.log
-            escaped=$(sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g' /tmp/vitest-tail.log)
-            echo "::error title=Vitest failed::$escaped"
-            exit "$status"
-          fi
+        run: npm run test
 
       - name: Build
         run: npm run build
