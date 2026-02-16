@@ -13,32 +13,61 @@ Production-ready dashboard built with React, TypeScript, Vite, React Query, and 
 npm ci
 ```
 
-## Local Development
+## Local development
 
 ```bash
 npm run dev
 ```
 
-## Quality Gates
+## Quality and security gates
 
 ```bash
+npm run check:repo-hygiene
 npm run typecheck
 npm run test
 npm run build
-npm run test:coverage
+npm run check:security
 npm run check:all
 ```
 
-`check:all` is the standard pre-merge validation (`typecheck + test + build`).
+`check:all` is the standard pre-merge validation chain.
 
-## Repository Hygiene Policy
+## Privacy controls
 
-The following generated artifacts are intentionally ignored and must not be committed:
+```bash
+npm run privacy:status
+npm run privacy:enforce
+```
 
+- `privacy:status`: reports current GitHub repository visibility.
+- `privacy:enforce`: fails if repository is not private.
+
+To set repository visibility to private using API credentials:
+
+```bash
+bash scripts/github-set-private.sh
+```
+
+`github-set-private.sh` requires `GH_TOKEN` or `GITHUB_TOKEN` with repository admin permissions.
+
+## Repository hygiene policy
+
+The following local/generated content is ignored and must not be committed:
+
+- `node_modules/`
 - `dist/`
 - `coverage/`
 - `playwright-report/`
 - `test-results/`
 - `.lighthouseci/`
+- `.env*` (except `.env.example`)
+- local IDE settings (`.vscode/settings.json`, `.vscode/launch.json`)
 
-Source and configuration files are the only repository source of truth.
+Source and project configuration files are the repository source of truth.
+
+## Personal project workflow
+
+1. Keep `main` protected and work on feature branches.
+2. Run `npm run check:all` before every merge.
+3. Keep secrets only in local `.env` files and never commit them.
+4. Use `npm run privacy:enforce` before publishing or sharing the repository.

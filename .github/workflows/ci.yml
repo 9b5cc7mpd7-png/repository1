@@ -5,6 +5,14 @@ on:
     branches:
       - '**'
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   quality:
@@ -40,11 +48,18 @@ jobs:
             npm install --no-save @rollup/rollup-linux-x64-gnu
           fi
 
-      - name: Typecheck
-        run: npm run typecheck
+      - name: Privacy status
+        run: npm run privacy:status
 
-      - name: Test
-        run: npm run test
+      - name: Warn if repository is public
+        if: ${{ github.event.repository.private != true }}
+        run: |
+          echo "::warning::Repository is currently public."
+          echo "::warning::Run 'bash scripts/github-set-private.sh' with a token to make it private."
 
-      - name: Build
-        run: npm run build
+      - name: Enforce private visibility (when repository is private)
+        if: ${{ github.event.repository.private == true }}
+        run: npm run privacy:enforce
+
+      - name: Quality and security checks
+        run: npm run check:all
